@@ -9,19 +9,14 @@ from evidence_verifier import verify_requirement
 
 load_dotenv()
 
-
-# -----------------------------------
 # 1. Load embedding model
-# -----------------------------------
 
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
 
-# -----------------------------------
 # 2. Connect to ChromaDB
-# -----------------------------------
 
 vector_store = Chroma(
     collection_name="doclens_documents",
@@ -29,17 +24,12 @@ vector_store = Chroma(
     persist_directory="./data/chroma"
 )
 
-
-# -----------------------------------
 # 3. User question
-# -----------------------------------
 
 question = "What are the ACID properties and database indexing?"
 
 
-# -----------------------------------
 # 4. Extract requirements
-# -----------------------------------
 
 requirements_text = extract_requirements(question)
 
@@ -50,9 +40,7 @@ print("\n================ REQUIREMENTS ================\n")
 print(requirements_text)
 
 
-# -----------------------------------
 # 5. Convert numbered list to Python list
-# -----------------------------------
 
 requirements = []
 
@@ -75,19 +63,14 @@ for requirement in requirements:
     print("-", requirement)
 
 
-# -----------------------------------
 # 6. Retrieve evidence
-# -----------------------------------
 
 results = vector_store.similarity_search(
     question,
     k=3
 )
 
-
-# -----------------------------------
 # 7. Build evidence text
-# -----------------------------------
 
 evidence_parts = []
 
@@ -106,10 +89,7 @@ Page: {document.metadata.get("page", 0) + 1}
 
 evidence = "\n".join(evidence_parts)
 
-
-# -----------------------------------
 # 8. Verify every requirement
-# -----------------------------------
 
 verification_results = []
 
@@ -127,10 +107,7 @@ for requirement in requirements:
         "reason": result["reason"]
     })
 
-
-# -----------------------------------
 # 9. Display verification results
-# -----------------------------------
 
 print("\n================ VERIFICATION ================\n")
 
@@ -150,10 +127,7 @@ for result in verification_results:
 
     print("\n------------------------------")
 
-
-# -----------------------------------
 # 10. Calculate evidence coverage
-# -----------------------------------
 
 supported_count = 0
 

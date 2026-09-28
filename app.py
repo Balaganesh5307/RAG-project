@@ -7,10 +7,7 @@ from werkzeug.utils import secure_filename
 from rag_pipeline import run_rag
 from vector_store import store_document
 
-
-# -----------------------------------
 # Create Flask application
-# -----------------------------------
 
 app = Flask(
     __name__,
@@ -20,19 +17,13 @@ app = Flask(
 
 CORS(app)
 
-
-# -----------------------------------
 # Serve frontend root
-# -----------------------------------
 
 @app.route("/", methods=["GET"])
 def index():
     return send_from_directory("frontend", "index.html")
 
-
-# -----------------------------------
 # Upload folder
-# -----------------------------------
 
 UPLOAD_FOLDER = os.path.join(
     app.root_path,
@@ -44,10 +35,7 @@ os.makedirs(
     exist_ok=True
 )
 
-
-# -----------------------------------
 # Health check
-# -----------------------------------
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -58,16 +46,12 @@ def health():
     })
 
 
-# -----------------------------------
-# Upload document
-# -----------------------------------
+# Upload document-
 
 @app.route("/upload", methods=["POST"])
 def upload():
 
-    # -----------------------------------
     # Check whether file exists
-    # -----------------------------------
 
     if "file" not in request.files:
 
@@ -77,9 +61,7 @@ def upload():
 
     file = request.files["file"]
 
-    # -----------------------------------
     # Check filename
-    # -----------------------------------
 
     if file.filename == "":
 
@@ -87,9 +69,7 @@ def upload():
             "error": "No file selected"
         }), 400
 
-    # -----------------------------------
     # Check PDF extension
-    # -----------------------------------
 
     if not file.filename.lower().endswith(".pdf"):
 
@@ -97,42 +77,32 @@ def upload():
             "error": "Only PDF files are allowed"
         }), 400
 
-    # -----------------------------------
     # Secure filename
-    # -----------------------------------
 
     filename = secure_filename(
         file.filename
     )
 
-    # -----------------------------------
     # Build absolute file path
-    # -----------------------------------
 
     file_path = os.path.join(
         UPLOAD_FOLDER,
         filename
     )
 
-    # -----------------------------------
     # Save uploaded PDF
-    # -----------------------------------
 
     file.save(
         file_path
     )
 
-    # -----------------------------------
     # Process document
-    # -----------------------------------
 
     result = store_document(
         file_path
     )
 
-    # -----------------------------------
     # Return document information
-    # -----------------------------------
 
     return jsonify({
     "status": "success",
@@ -144,18 +114,14 @@ def upload():
 })
 
 
-# -----------------------------------
 # Ask question
-# -----------------------------------
 
 @app.route("/ask", methods=["POST"])
 def ask():
 
     data = request.get_json()
 
-    # -----------------------------------
     # Validate request body
-    # -----------------------------------
 
     if not data:
 
@@ -163,9 +129,7 @@ def ask():
             "error": "Request body is required"
         }), 400
 
-    # -----------------------------------
     # Get document ID
-    # -----------------------------------
 
     document_id = data.get(
         "document_id"
@@ -177,9 +141,7 @@ def ask():
             "error": "Document ID is required"
         }), 400
 
-    # -----------------------------------
     # Get question
-    # -----------------------------------
 
     question = data.get(
         "question"
@@ -199,9 +161,7 @@ def ask():
             "error": "Question cannot be empty"
         }), 400
 
-    # -----------------------------------
     # Run RAG pipeline
-    # -----------------------------------
 
     try:
 
@@ -228,18 +188,14 @@ def ask():
             "error": f"Pipeline error: {error_message}"
         }), 500
 
-    # -----------------------------------
     # Return JSON response
-    # -----------------------------------
 
     return jsonify(
         result
     )
 
 
-# -----------------------------------
 # Start server
-# -----------------------------------
 
 if __name__ == "__main__":
 

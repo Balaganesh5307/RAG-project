@@ -3,10 +3,7 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 
-
-# ============================================================
 # 1. ENVIRONMENT AND MODEL
-# ============================================================
 
 load_dotenv()
 
@@ -15,10 +12,7 @@ model = ChatGroq(
     temperature=0
 )
 
-
-# ============================================================
 # 2. REQUIREMENT EXTRACTION PROMPT
-# ============================================================
 
 prompt = ChatPromptTemplate.from_template(
     """
@@ -126,10 +120,7 @@ Requirements:
 
 chain = prompt | model
 
-
-# ============================================================
 # 3. EXTRACT REQUIREMENTS
-# ============================================================
 
 def extract_requirements(question):
 
@@ -154,10 +145,7 @@ def extract_requirements(question):
 
     return raw
 
-
-# ============================================================
 # 4. STANDALONE TEST
-# ============================================================
 
 if __name__ == "__main__":
 

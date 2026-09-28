@@ -7,26 +7,17 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from sklearn.metrics.pairwise import cosine_similarity
 
-
-# ============================================================
 # Load environment variables
-# ============================================================
 
 load_dotenv()
 
-
-# ============================================================
 # Step 1: Load embedding model
-# ============================================================
 
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-
-# ============================================================
 # Step 2: Connect to ChromaDB
-# ============================================================
 
 vector_store = Chroma(
     collection_name="doclens_documents",
@@ -34,10 +25,7 @@ vector_store = Chroma(
     persist_directory="./data/chroma"
 )
 
-
-# ============================================================
 # Step 3: Evidence Gate
-# ============================================================
 
 def check_evidence(results):
 
@@ -63,10 +51,7 @@ def check_evidence(results):
 
     return status, best_score, average_score
 
-
-# ============================================================
 # Step 4: Automatic Evidence Coverage
-# ============================================================
 
 def check_coverage(question, results):
 
@@ -155,10 +140,7 @@ def check_coverage(question, results):
         coverage_ratio
     )
 
-
-# ============================================================
 # Step 5: Cross-Evidence Consistency
-# ============================================================
 
 def check_consistency(results, embeddings):
 
@@ -205,36 +187,24 @@ def check_consistency(results, embeddings):
         similarity_scores
     )
 
-
-# ============================================================
 # Step 6: Question
-# ============================================================
 
 question = "What are the ACID properties?"
 
-
-# ============================================================
 # Step 7: Retrieve Evidence
-# ============================================================
 
 results = vector_store.similarity_search_with_score(
     question,
     k=3
 )
 
-
-# ============================================================
 # Step 8: Evidence Gate
-# ============================================================
 
 status, best_score, average_score = (
     check_evidence(results)
 )
 
-
-# ============================================================
 # Step 9: Evidence Coverage
-# ============================================================
 
 important_terms, matched_terms, coverage_ratio = (
     check_coverage(
@@ -243,10 +213,7 @@ important_terms, matched_terms, coverage_ratio = (
     )
 )
 
-
-# ============================================================
 # Step 10: Cross-Evidence Consistency
-# ============================================================
 
 average_consistency, pairwise_scores = (
     check_consistency(
@@ -255,10 +222,7 @@ average_consistency, pairwise_scores = (
     )
 )
 
-
-# ============================================================
 # Step 11: Display Evidence Evaluation
-# ============================================================
 
 print("Question:", question)
 
@@ -267,10 +231,7 @@ print(
     "\n================ EVIDENCE EVALUATION ================"
 )
 
-
-# ------------------------------------------------------------
 # Semantic Relevance
-# ------------------------------------------------------------
 
 print("\nSemantic Relevance")
 print("------------------")
@@ -290,10 +251,7 @@ print(
     len(results)
 )
 
-
-# ------------------------------------------------------------
 # Evidence Coverage
-# ------------------------------------------------------------
 
 print("\nEvidence Coverage")
 print("-----------------")
@@ -313,10 +271,7 @@ print(
     round(coverage_ratio, 4)
 )
 
-
-# ------------------------------------------------------------
 # Cross-Evidence Consistency
-# ------------------------------------------------------------
 
 print("\nCross-Evidence Consistency")
 print("--------------------------")
@@ -339,20 +294,14 @@ print(
     )
 )
 
-
-# ------------------------------------------------------------
 # Evidence Gate
-# ------------------------------------------------------------
 
 print(
     "\nEvidence status:",
     status
 )
 
-
-# ============================================================
 # Step 12: Stop if Evidence is Insufficient
-# ============================================================
 
 if status == "INSUFFICIENT":
 
@@ -364,10 +313,7 @@ if status == "INSUFFICIENT":
         "Generation stopped."
     )
 
-
-# ============================================================
 # Step 13: Continue to Generation
-# ============================================================
 
 else:
 
@@ -379,10 +325,7 @@ else:
         "Generation can continue."
     )
 
-
-    # --------------------------------------------------------
     # Build Context
-    # --------------------------------------------------------
 
     context_parts = []
 
@@ -406,10 +349,7 @@ Page: {document.metadata.get("page", 0) + 1}
         context_parts
     )
 
-
-    # --------------------------------------------------------
     # Step 14: Prompt
-    # --------------------------------------------------------
 
     prompt = ChatPromptTemplate.from_template(
         """
@@ -430,27 +370,18 @@ Answer:
 """
     )
 
-
-    # --------------------------------------------------------
     # Step 15: Groq
-    # --------------------------------------------------------
 
     model = ChatGroq(
         model="qwen/qwen3.8-27b",
         temperature=0
     )
 
-
-    # --------------------------------------------------------
     # Step 16: Chain
-    # --------------------------------------------------------
 
     chain = prompt | model
 
-
-    # --------------------------------------------------------
     # Step 17: Generate Answer
-    # --------------------------------------------------------
 
     response = chain.invoke(
         {
@@ -459,10 +390,7 @@ Answer:
         }
     )
 
-
-    # --------------------------------------------------------
     # Step 18: Display Answer
-    # --------------------------------------------------------
 
     print(
         "\n================ ANSWER ================\n"

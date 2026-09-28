@@ -12,17 +12,12 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------
 # Default Groq model configuration
-# -----------------------------------
 
 DEFAULT_MODEL = "qwen/qwen3.8-27b"
 DEFAULT_TEMPERATURE = 0
 
-
-# -----------------------------------
 # Retry configuration
-# -----------------------------------
 
 MAX_RETRIES = 3
 INITIAL_BACKOFF_SECONDS = 5

@@ -6,26 +6,17 @@ from requirement_retriever import retrieve_for_requirement
 from evidence_verifier import verify_requirement
 from evidence_evaluator import evaluate_evidence
 
-
-# ============================================================
 # PROJECT-SPECIFIC EVIDENCE ACCEPTANCE CRITERIA
-# ============================================================
 
 MIN_DIRECTNESS = 2
 MIN_COMPLETENESS = 2
 
-
-# ============================================================
 # NORMALIZE TEXT FOR EVIDENCE ATTRIBUTION
-# ============================================================
 
 def normalize_text(text):
     return re.sub(r"\s+", " ", text).strip()
 
-
-# ============================================================
 # EVALUATE ONE REQUIREMENT
-# ============================================================
 
 def evaluate_requirement(requirement, document_id, k=3):
 
@@ -179,10 +170,7 @@ Distance: {round(distance, 4)}
         "attribution": attribution
     }
 
-
-# ============================================================
 # PARSE REQUIREMENTS
-# ============================================================
 
 def parse_requirements(requirements_text):
 
@@ -204,10 +192,7 @@ def parse_requirements(requirements_text):
 
     return requirements
 
-
-# ============================================================
 # EVALUATE COMPLETE QUESTION
-# ============================================================
 
 def evaluate_question(question, document_id, k=3):
 
@@ -235,10 +220,7 @@ def evaluate_question(question, document_id, k=3):
         "results": results
     }
 
-
-# ============================================================
 # CALCULATE REQUIREMENT COVERAGE
-# ============================================================
 
 def calculate_coverage(results):
 

@@ -4,10 +4,7 @@ from evidence_gate import check_evidence
 
 from generator import generate_answer
 
-
-# -----------------------------------
 # Build verified evidence
-# -----------------------------------
 
 def build_verified_evidence(evaluation):
 
@@ -26,9 +23,7 @@ def build_verified_evidence(evaluation):
         if attribution is None:
             continue
 
-        # -----------------------------------
         # Text version for the LLM
-        # -----------------------------------
 
         evidence_parts.append(
             f"""
@@ -48,9 +43,7 @@ Page:
 """
         )
 
-        # -----------------------------------
         # Structured version for API/frontend
-        # -----------------------------------
 
         evidence_items.append({
             "requirement": attribution["requirement"],
@@ -66,16 +59,11 @@ Page:
         evidence_items
     )
 
-
-# -----------------------------------
 # Run complete RAG pipeline
-# -----------------------------------
 
 def run_rag(question, document_id):
 
-    # -----------------------------------
     # Step 1: Evaluate question
-    # -----------------------------------
 
     evaluation = evaluate_question(
         question,
@@ -83,17 +71,13 @@ def run_rag(question, document_id):
         k=3
     )
 
-    # -----------------------------------
     # Step 2: Evidence Gate
-    # -----------------------------------
 
     gate_result = check_evidence(
         evaluation
     )
 
-    # -----------------------------------
     # Step 3: Stop if evidence insufficient
-    # -----------------------------------
 
     if gate_result["status"] != "SUFFICIENT":
 
@@ -121,9 +105,7 @@ def run_rag(question, document_id):
             }
         }
 
-    # -----------------------------------
     # Step 4: Build verified evidence
-    # -----------------------------------
 
     verified_evidence, evidence_items = (
         build_verified_evidence(
@@ -131,18 +113,14 @@ def run_rag(question, document_id):
         )
     )
 
-    # -----------------------------------
     # Step 5: Generate answer
-    # -----------------------------------
 
     answer = generate_answer(
         question,
         verified_evidence
     )
 
-    # -----------------------------------
     # Step 6: Return API-safe result
-    # -----------------------------------
 
     return {
         "question": question,
@@ -163,10 +141,7 @@ def run_rag(question, document_id):
         }
     }
 
-
-# -----------------------------------
 # Test the pipeline directly
-# -----------------------------------
 
 if __name__ == "__main__":
 

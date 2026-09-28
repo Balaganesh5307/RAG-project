@@ -4,27 +4,18 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 
-
-# ============================================================
 # 1. LOAD ENVIRONMENT VARIABLES
-# ============================================================
 
 load_dotenv()
 
-
-# ============================================================
 # 2. INITIALIZE LLM
-# ============================================================
 
 model = ChatGroq(
     model="qwen/qwen3.8-27b",
     temperature=0
 )
 
-
-# ============================================================
 # 3. EVIDENCE EVALUATION PROMPT
-# ============================================================
 
 prompt = ChatPromptTemplate.from_template(
     """
@@ -94,10 +85,7 @@ Return exactly this JSON structure:
 
 chain = prompt | model
 
-
-# ============================================================
 # 4. VALIDATE EVALUATION RESULT
-# ============================================================
 
 def validate_evaluation(result):
     """
@@ -146,10 +134,7 @@ def validate_evaluation(result):
 
     return result
 
-
-# ============================================================
 # 5. EVALUATE ONE CANDIDATE EVIDENCE
-# ============================================================
 
 def evaluate_evidence(requirement, evidence):
     """
@@ -194,10 +179,7 @@ def evaluate_evidence(requirement, evidence):
 
     return validate_evaluation(result)
 
-
-# ============================================================
 # 6. COMPARE WEAK AND DIRECT EVIDENCE
-# ============================================================
 
 if __name__ == "__main__":
 
