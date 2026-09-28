@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>DocLens AI — Evidence-First Document Intelligence</title>
+
+  <meta
+    name="description"
+    content="Upload a PDF, ask questions, and inspect the evidence behind every answer."
+  />
+
+  <style>
+    :root {
+      --primary: #5141e5;
+      --primary-hover: #4334d0;
+      --primary-light: #efedff;
+      --background: #f4f6fb;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #718096;
+      --border: #e2e8f0;
+      --success: #13875b;
+      --success-bg: #eaf8f1;
+      --error: #c43d3d;
+      --error-bg: #fff0f0;
+      --info: #2862bd;
+      --info-bg: #eef5ff;
+      --shadow: 0 12px 30px rgba(26, 35, 60, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app-shell {
+      width: min(1100px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 18px;
+    }
+
+    /* Header */
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-name {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-tagline {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .backend-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #a0a8b8;
+    }
+
+    .backend-status.connected .status-dot {
+      background: #159765;
+    }
+
+    .backend-status.disconnected .status-dot {
+      background: #d64545;
+    }
+
+    /* Intro */
+
+    .page-heading {
+      margin-bottom: 24px;
+    }
+
+    .page-heading h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 34px);
+      letter-spacing: -1px;
+    }
+
+    .page-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Main layout */
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 296px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      padding: 18px 20px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header h2 {
+      margin: 0 0 5px;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .panel-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Upload panel */
+
+    .upload-content {
+      padding: 18px;
+    }
+
+    .upload-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 184px;
+      padding: 18px;
+      border: 2px dashed #c9c5ff;
+      border-radius: 13px;
+      background: #fafaff;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .upload-zone:hover,
+    .upload-zone:focus-visible {
+      border-color: var(--primary);
+      background: #f4f3ff;
+    }
+
+    .upload-zone.dragover {
+      border-color: var(--primary);
+      background: #eceaff;
+      transform: scale(1.01);
+      box-shadow: 0 4px 18px rgba(81, 65, 229, 0.15);
+    }
+
+    .upload-icon {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      margin-bottom: 12px;
+      border-radius: 13px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 24px;
+      transition: transform 0.2s ease;
+    }
+
+    .upload-zone:hover .upload-icon,
+    .upload-zone.dragover .upload-icon {
+      transform: translateY(-2px);
+    }
+
+    .upload-title {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .upload-subtitle {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .primary-button {
+      min-height: 40px;
+      padding: 0 17px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 650;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .primary-button:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .primary-button:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .file-input-hidden {
+      display: none;
+    }
+
+    .upload-status {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .upload-status.visible {
+      display: block;
+    }
+
+    .upload-status.info {
+      background: var(--info-bg);
+      color: var(--info);
+      border-left: 3px solid var(--info);
+    }
+
+    .upload-status.info::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 7px;
+      border: 2px solid var(--info);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .upload-status.success {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .upload-status.error {
+      background: var(--error-bg);
+      color: var(--error);
+    }
+
+    .document-info {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .document-info.visible {
+      display: block;
+    }
+
+    .document-info strong {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 12px;
+    }
+
+    .document-info .document-label {
+      color: var(--muted);
+    }
+
+    .upload-note {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    /* Chat panel */
+
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 540px;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 350px;
+      max-height: 600px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .empty-state {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      margin-bottom: 14px;
+      border-radius: 16px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 25px;
+    }
+
+    .empty-state h3 {
+      margin: 0 0 7px;
+      font-size: 14px;
+    }
+
+    .empty-state p {
+      max-width: 310px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .message {
+      max-width: 90%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      border-color: #dedaff;
+      background: var(--primary-light);
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #f8f9fc;
+    }
+
+    .message-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 10px;
+      padding: 16px 18px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .question-input {
+      flex: 1;
+      min-width: 0;
+      min-height: 42px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .question-input:focus {
+      border-color: #a9a1ff;
+      box-shadow: 0 0 0 3px rgba(81, 65, 229, 0.08);
+    }
+
+    .question-input:disabled {
+      background: #f7f8fb;
+      cursor: not-allowed;
+    }
+
+    .ask-button {
+      min-width: 102px;
+    }
+
+    /* Footer */
+
+    .footer {
+      padding: 22px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 760px) {
+      .app-shell {
+        width: min(100% - 28px, 560px);
+        padding-top: 18px;
+      }
+
+      .topbar {
+        margin-bottom: 26px;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-panel {
+        min-height: 500px;
+      }
+
+      .chat-messages {
+        min-height: 300px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .backend-status {
+        padding: 8px;
+        font-size: 0;
+      }
+
+      .backend-status .status-dot {
+        width: 9px;
+        height: 9px;
+      }
+
+      .chat-form {
+        flex-direction: column;
+      }
+
+      .ask-button {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <!-- defer ensures the HTML elements exist before script.js runs -->
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">D</div>
+
+        <div>
+          <p class="brand-name">DocLens AI</p>
+          <p class="brand-tagline">See the answer. See the evidence.</p>
+        </div>
+      </div>
+
+      <div
+        class="backend-status"
+        id="backendStatus"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="backendStatusText">Checking backend...</span>
+      </div>
+    </header>
+
+    <!-- Intro -->
+    <section class="page-heading">
+      <h1>Chat with your documents.</h1>
+      <p>
+        Upload a PDF, ask a question, and inspect the evidence behind the answer.
+      </p>
+    </section>
+
+    <main class="workspace">
+
+      <!-- Document Library -->
+      <section class="panel" aria-labelledby="documentLibraryTitle">
+        <div class="panel-header">
+          <h2 id="documentLibraryTitle">Document Library</h2>
+          <p>Upload a PDF to begin a grounded conversation.</p>
+        </div>
+
+        <div class="upload-content">
+
+          <div
+            class="upload-zone"
+            id="uploadZone"
+            tabindex="0"
+            role="button"
+            aria-label="Click or drag and drop a PDF document to upload"
+          >
+            <div class="upload-icon" aria-hidden="true">↑</div>
+
+            <p class="upload-title">Choose or drag a PDF document</p>
+            <p class="upload-subtitle">PDF files only (click or drag &amp; drop)</p>
+
+            <button
+              type="button"
+              class="primary-button"
+              id="chooseFileButton"
+            >
+              Browse PDF
+            </button>
+
+            <!-- Hidden file input controlled by script.js -->
+            <input
+              type="file"
+              id="pdfInput"
+              class="file-input-hidden"
+              accept=".pdf,application/pdf"
+              aria-label="Choose a PDF document"
+            />
+          </div>
+
+          <!-- Upload progress, success, duplicate, and error messages -->
+          <div
+            class="upload-status"
+            id="uploadStatus"
+            role="status"
+            aria-live="polite"
+          ></div>
+
+          <!-- Selected document information -->
+          <div
+            class="document-info"
+            id="documentInfo"
+            aria-live="polite"
+          >
+            <strong>Selected document</strong>
+
+            <div id="documentFilename"></div>
+            <div id="documentStats"></div>
+            <div id="documentId"></div>
+          </div>
+
+          <p class="upload-note">
+            Answers are generated using evidence retrieved from the selected PDF.
+            If the document does not contain enough evidence, DocLens AI should say so.
+          </p>
+        </div>
+      </section>
+
+      <!-- Document Q&A -->
+      <section class="panel chat-panel" aria-labelledby="chatTitle">
+        <div class="panel-header">
+          <h2 id="chatTitle">Document Q&amp;A</h2>
+          <p>Ask questions about the currently selected document.</p>
+        </div>
+
+        <!-- Messages are inserted here by script.js -->
+        <div
+          class="chat-messages"
+          id="chatMessages"
+          aria-live="polite"
+          aria-relevant="additions"
+        >
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon" aria-hidden="true">✦</div>
+
+            <h3>Your document conversation starts here</h3>
+
+            <p>
+              Upload a PDF, then enter a question to see the answer
+              and its supporting evidence.
+            </p>
+          </div>
+        </div>
+
+        <!-- Only the question input belongs to this form -->
+        <form class="chat-form" id="questionForm">
+          <input
+            type="text"
+            class="question-input"
+            id="questionInput"
+            name="question"
+            placeholder="Ask a question about your PDF..."
+            autocomplete="off"
+            aria-label="Question about your PDF"
+            disabled
+          />
+
+          <button
+            type="submit"
+            class="primary-button ask-button"
+            id="askButton"
+            disabled
+          >
+            Ask question
+          </button>
+        </form>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      DocLens AI · Evidence-first document intelligence
+    </footer>
+
+  </div>
+</body>
+</html>
