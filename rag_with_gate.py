@@ -336,12 +336,12 @@ else:
 
         context_parts.append(
             f"""
-Evidence {i + 1}
-Source: {document.metadata.get("source")}
-Page: {document.metadata.get("page", 0) + 1}
+            Evidence {i + 1}
+            Source: {document.metadata.get("source")}
+            Page: {document.metadata.get("page", 0) + 1}
 
-{document.page_content}
-"""
+            {document.page_content}
+            """
         )
 
 
@@ -353,21 +353,21 @@ Page: {document.metadata.get("page", 0) + 1}
 
     prompt = ChatPromptTemplate.from_template(
         """
-You are DocLens AI, an evidence-first document assistant.
+        You are DocLens AI, an evidence-first document assistant.
 
-Answer the user's question using ONLY the provided evidence.
+        Answer the user's question using ONLY the provided evidence.
 
-If the evidence does not contain enough information,
-do not invent facts.
+        If the evidence does not contain enough information,
+        do not invent facts.
 
-User Question:
-{question}
+        User Question:
+        {question}
 
-Evidence:
-{context}
+        Evidence:
+        {context}
 
-Answer:
-"""
+        Answer:
+        """
     )
 
     # Step 15: Groq

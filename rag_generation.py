@@ -24,7 +24,7 @@ vector_store = Chroma(
 )
 
 
-# Step 4: Create Gemini model
+# Step 4: Create Groq model
 model = ChatGroq(
     model="qwen/qwen3.8-27b",
     temperature=0
@@ -91,7 +91,7 @@ final_prompt = prompt.invoke({
 })
 
 
-# Step 10: Send prompt to Gemini
+# Step 10: Send prompt to Groq
 response = model.invoke(final_prompt)
 
 

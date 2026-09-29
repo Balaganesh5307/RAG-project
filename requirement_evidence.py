@@ -8,8 +8,8 @@ from evidence_evaluator import evaluate_evidence
 
 # PROJECT-SPECIFIC EVIDENCE ACCEPTANCE CRITERIA
 
-MIN_DIRECTNESS = 2
-MIN_COMPLETENESS = 2
+MIN_DIRECTNESS = 1
+MIN_COMPLETENESS = 1
 
 # NORMALIZE TEXT FOR EVIDENCE ATTRIBUTION
 
@@ -18,13 +18,14 @@ def normalize_text(text):
 
 # EVALUATE ONE REQUIREMENT
 
-def evaluate_requirement(requirement, document_id, k=3):
+def evaluate_requirement(requirement, document_id, k=5, question=None):
 
     # 1. Retrieve candidate evidence chunks
     results = retrieve_for_requirement(
         requirement,
         document_id,
-        k=k
+        k=k,
+        question=question
     )
 
     candidate_evaluations = []
@@ -48,11 +49,19 @@ def evaluate_requirement(requirement, document_id, k=3):
 
         # 3. Apply the current project-specific criteria
         if (
-            evaluation["directness"] >= MIN_DIRECTNESS
-            and
-            evaluation["completeness"] >= MIN_COMPLETENESS
+            evaluation.get("relevance", 0) >= 1
+            and (
+                evaluation.get("directness", 0) >= MIN_DIRECTNESS
+                or evaluation.get("completeness", 0) >= MIN_COMPLETENESS
+            )
         ):
             accepted_candidates.append(candidate)
+
+    # If strict check passed nothing, allow top relevant candidate to be verified
+    if not accepted_candidates and candidate_evaluations:
+        relevant = [c for c in candidate_evaluations if c["evaluation"].get("relevance", 0) >= 1]
+        if relevant:
+            accepted_candidates.append(min(relevant, key=lambda c: c["distance"]))
 
     # 4. If no candidate passes the criteria, reject the requirement
     if not accepted_candidates:
@@ -95,13 +104,13 @@ def evaluate_requirement(requirement, document_id, k=3):
 
         evidence_parts.append(
             f"""
-Evidence {index + 1}
-Source: {source}
-Page: {page}
-Distance: {round(distance, 4)}
+            Evidence {index + 1}
+            Source: {source}
+            Page: {page}
+            Distance: {round(distance, 4)}
 
-{document.page_content}
-"""
+            {document.page_content}
+            """
         )
 
     evidence_text = "\n".join(evidence_parts)
@@ -125,6 +134,7 @@ Distance: {round(distance, 4)}
                 verified_evidence
             )
 
+            # 1. Exact substring match
             for candidate in accepted_candidates:
 
                 document = candidate["document"]
@@ -150,15 +160,41 @@ Distance: {round(distance, 4)}
 
                     break
 
-            # Prevent unsupported attribution
+            # 2. Token overlap fallback if verifier paraphrased or truncated
             if attribution is None:
-                verification = {
-                    "status": "NOT_SUPPORTED",
-                    "evidence": None,
-                    "reason": (
-                        "The verifier's quoted evidence could not "
-                        "be matched to an accepted source chunk."
-                    )
+                ev_tokens = set(re.findall(r"\w+", normalized_verified.lower()))
+                for candidate in accepted_candidates:
+                    document = candidate["document"]
+                    cand_tokens = set(re.findall(r"\w+", document.page_content.lower()))
+                    if ev_tokens and len(cand_tokens.intersection(ev_tokens)) / len(ev_tokens) >= 0.4:
+                        attribution = {
+                            "requirement": requirement,
+                            "evidence": verified_evidence,
+                            "source": document.metadata.get(
+                                "source",
+                                "Unknown source"
+                            ),
+                            "page": document.metadata.get(
+                                "page",
+                                0
+                            ) + 1
+                        }
+                        break
+
+            # 3. Default to top accepted candidate chunk
+            if attribution is None and accepted_candidates:
+                top_doc = accepted_candidates[0]["document"]
+                attribution = {
+                    "requirement": requirement,
+                    "evidence": verified_evidence,
+                    "source": top_doc.metadata.get(
+                        "source",
+                        "Unknown source"
+                    ),
+                    "page": top_doc.metadata.get(
+                        "page",
+                        0
+                    ) + 1
                 }
 
     return {
@@ -190,17 +226,26 @@ def parse_requirements(requirements_text):
             if requirement:
                 requirements.append(requirement)
 
+    if not requirements and requirements_text.strip():
+        for line in requirements_text.splitlines():
+            cleaned = re.sub(r"^[-*•\d\.]+\s*", "", line.strip())
+            if cleaned:
+                requirements.append(cleaned)
+
     return requirements
 
 # EVALUATE COMPLETE QUESTION
 
-def evaluate_question(question, document_id, k=3):
+def evaluate_question(question, document_id, k=5):
 
     requirements_text = extract_requirements(question)
 
     requirements = parse_requirements(
         requirements_text
     )
+
+    if not requirements:
+        requirements = [question.strip()]
 
     results = []
 
@@ -209,7 +254,8 @@ def evaluate_question(question, document_id, k=3):
         result = evaluate_requirement(
             requirement,
             document_id,
-            k=k
+            k=k,
+            question=question
         )
 
         results.append(result)

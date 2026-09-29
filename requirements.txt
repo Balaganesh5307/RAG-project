@@ -10,3 +10,4 @@ chromadb
 pymupdf
 google-genai
 python-dotenv
+rank-bm25

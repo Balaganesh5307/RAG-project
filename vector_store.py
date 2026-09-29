@@ -44,7 +44,14 @@ def find_document_by_hash(file_hash):
     }
 
 
-def store_document(file_path):
+def delete_document(document_id):
+    try:
+        vector_store.delete(where={"document_id": document_id})
+    except Exception:
+        pass
+
+
+def store_document(file_path, reindex=False):
 
     # 1. Calculate hash BEFORE PDF ingestion
     file_hash = calculate_file_hash(file_path)
@@ -52,7 +59,7 @@ def store_document(file_path):
     # 2. Check whether this exact document already exists
     existing_document = find_document_by_hash(file_hash)
 
-    if existing_document is not None:
+    if existing_document is not None and not reindex:
         return {
             "document_id": existing_document["document_id"],
             "file_hash": existing_document["file_hash"],
@@ -61,7 +68,10 @@ def store_document(file_path):
             "duplicate": True
         }
 
-    # 3. New document → load and process PDF
+    if existing_document is not None and reindex:
+        delete_document(existing_document["document_id"])
+
+    # 3. Process PDF
     ingestion_result = ingest_document(file_path)
 
     document_id = ingestion_result["document_id"]

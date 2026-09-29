@@ -68,13 +68,23 @@ IMPORTANT RULES:
 9. Do not use outside knowledge to add facts or details
    to the requirements.
 
-10. Keep requirements concise, specific, and independently
+10. If the question contains abbreviations or acronyms (such as RAG, LLM, API, NLP, CNN, etc.),
+    include both the abbreviation and its full term in parentheses (e.g. 'RAG (Retrieval-Augmented Generation)')
+    so that document retrieval can find both exact acronyms and their full definitions.
+
+11. Keep requirements concise, specific, and independently
     verifiable against document evidence.
 
-11. Return ONLY a numbered list.
-12. Do not use Markdown code fences.
+12. Return ONLY a numbered list.
+13. Do not use Markdown code fences.
 
 EXAMPLES:
+
+Question:
+What is the RAG?
+
+Requirements:
+1. Definition of RAG (Retrieval-Augmented Generation)
 
 Question:
 What is schema?

@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 
 from langchain_community.document_loaders import PyMuPDFLoader
@@ -19,16 +20,25 @@ def ingest_document(file_path):
     loader = PyMuPDFLoader(file_path)
     documents = loader.load()
 
-    # 4. Add document-level metadata
+    # 4. Clean text and add document-level metadata
     for document in documents:
+        content = document.page_content or ""
+        # Remove soft hyphens
+        content = content.replace("\xad", "")
+        # De-hyphenate words split across line breaks
+        content = re.sub(r"(\w+)-\n(\w+)", r"\1\2", content)
+        # Normalize special unicode spaces
+        content = re.sub(r"[\u2000-\u200f\u202f\xa0]", " ", content)
+        document.page_content = content
+
         document.metadata["document_id"] = document_id
         document.metadata["file_hash"] = file_hash
         document.metadata["source"] = os.path.abspath(file_path)
 
-    # 5. Split documents into chunks
+    # 5. Split documents into healthy-sized chunks
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=300,
-        chunk_overlap=50
+        chunk_size=1000,
+        chunk_overlap=200
     )
 
     chunks = text_splitter.split_documents(documents)

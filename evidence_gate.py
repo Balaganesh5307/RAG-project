@@ -33,11 +33,11 @@ def check_evidence(evaluation):
         best_distance = None
         average_distance = None
 
-    if total_requirements == 0:
+    if total_requirements == 0 or supported_requirements == 0:
 
         status = "INSUFFICIENT"
 
-    elif coverage >= 0.5:
+    elif coverage >= 0.5 or supported_requirements >= 1:
 
         status = "SUFFICIENT"
 

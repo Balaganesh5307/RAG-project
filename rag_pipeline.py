@@ -27,20 +27,20 @@ def build_verified_evidence(evaluation):
 
         evidence_parts.append(
             f"""
-Evidence {evidence_number}
+            Evidence {evidence_number}
 
-Requirement:
-{attribution["requirement"]}
+            Requirement:
+            {attribution["requirement"]}
 
-Supporting Evidence:
-{attribution["evidence"]}
+            Supporting Evidence:
+            {attribution["evidence"]}
 
-Source:
-{attribution["source"]}
+            Source:
+            {attribution["source"]}
 
-Page:
-{attribution["page"]}
-"""
+            Page:
+            {attribution["page"]}
+            """
         )
 
         # Structured version for API/frontend
@@ -68,7 +68,7 @@ def run_rag(question, document_id):
     evaluation = evaluate_question(
         question,
         document_id,
-        k=3
+        k=8
     )
 
     # Step 2: Evidence Gate
